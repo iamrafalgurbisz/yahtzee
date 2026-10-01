@@ -1,0 +1,85 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: yahtzee
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./server/src/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d yahtzee"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  server-dev:
+    profiles: ["dev"]
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+      target: dev
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: ${DATABASE_URL}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./server:/repo/server
+      - /repo/server/node_modules
+      - ./shared:/repo/shared
+    depends_on:
+      db:
+        condition: service_healthy
+
+  server:
+    profiles: ["prod"]
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+      target: prod
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: ${DATABASE_URL}
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  client-dev:
+    profiles: ["dev"]
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+      target: dev
+    environment:
+      VITE_API_URL: http://localhost:3000
+      VITE_USE_POLLING: "true"
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./client:/repo/client
+      - /repo/client/node_modules
+      - ./shared:/repo/shared
+    depends_on:
+      - server-dev
+
+  client:
+    profiles: ["prod"]
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+      target: prod
+      args:
+        VITE_API_URL: http://localhost:3000
+    ports:
+      - "3001:80"
+    depends_on:
+      - server
+
+volumes:
+  db-data:
