@@ -72,9 +72,6 @@ export const GameActions: React.FC<Props> = ({ gameUuid }) => {
               <span>
                 <Die value={null} />
               </span>
-              <span>
-                <Die value={null} />
-              </span>
             </div>
           )}
         </div>

@@ -17,3 +17,6 @@ export const CATEGORIES = [
 ] as const;
 
 export type Category = (typeof CATEGORIES)[number];
+
+export const UPPER_CATEGORIES = CATEGORIES.slice(0, 6);
+export const LOWER_CATEGORIES = CATEGORIES.slice(6);

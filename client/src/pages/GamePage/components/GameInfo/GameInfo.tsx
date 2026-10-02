@@ -9,7 +9,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CATEGORIES } from "@shared/types/gameCategories";
+import {
+  LOWER_CATEGORIES,
+  UPPER_CATEGORIES,
+  type Category,
+} from "@shared/types/gameCategories";
+import {
+  getScoreSummary,
+  UPPER_BONUS_THRESHOLD,
+  type ScoreSummary,
+} from "@shared/helpers/getScoreSummary";
 import { ScoreCell } from "./components/ScoreCell/ScoreCell";
 
 interface Props {
@@ -19,6 +28,51 @@ interface Props {
 export const GameInfo: React.FC<Props> = ({ gameUuid }) => {
   const { data: game } = useGame(gameUuid);
 
+  const summaries = game.players.map(getScoreSummary);
+
+  const renderCategoryRows = (categories: readonly Category[]) =>
+    categories.map((category) => (
+      <TableRow key={category}>
+        <TableCell>{category}</TableCell>
+        {game.players.map((player) => (
+          <ScoreCell
+            key={player.player_uuid}
+            player={player}
+            dice={game.dice}
+            gameUuid={game.uuid}
+            category={category}
+            isMyTurn={game.is_my_turn}
+            currentSeat={game.current_seat}
+          />
+        ))}
+      </TableRow>
+    ));
+
+  const renderSectionRow = (label: string) => (
+    <TableRow className="bg-muted hover:bg-muted">
+      <TableCell
+        colSpan={game.players.length + 1}
+        className="text-xs font-semibold tracking-wide text-muted-foreground uppercase"
+      >
+        {label}
+      </TableCell>
+    </TableRow>
+  );
+
+  const renderSummaryRow = (
+    label: string,
+    getValue: (summary: ScoreSummary) => React.ReactNode,
+  ) => (
+    <TableRow className="bg-muted/50 font-medium">
+      <TableCell>{label}</TableCell>
+      {summaries.map((summary, i) => (
+        <TableCell key={game.players[i].player_uuid}>
+          {getValue(summary)}
+        </TableCell>
+      ))}
+    </TableRow>
+  );
+
   return (
     <Table>
       <TableHeader>
@@ -26,35 +80,33 @@ export const GameInfo: React.FC<Props> = ({ gameUuid }) => {
           <TableHead>-</TableHead>
           {game.players.map((player) => (
             <TableHead
+              key={player.player_uuid}
               className={player.seat === game.current_seat ? "bg-accent" : ""}
             >
-              {player.player_uuid}
+              {player.display_name}
             </TableHead>
           ))}
         </TableRow>
       </TableHeader>
       <TableBody>
-        {CATEGORIES.map((category) => (
-          <TableRow key={category}>
-            <TableCell>{category}</TableCell>
-            {game.players.map((player) => (
-              <ScoreCell
-                player={player}
-                dice={game.dice}
-                gameUuid={game.uuid}
-                category={category}
-                isMyTurn={game.is_my_turn}
-                currentSeat={game.current_seat}
-              />
-            ))}
-          </TableRow>
-        ))}
+        {renderSectionRow("Upper section")}
+        {renderCategoryRows(UPPER_CATEGORIES)}
+        {renderSummaryRow(
+          "Sum",
+          (summary) => `${summary.upper} / ${UPPER_BONUS_THRESHOLD}`,
+        )}
+        {renderSummaryRow("Bonus", (summary) => summary.bonus)}
+        {renderSectionRow("Lower section")}
+        {renderCategoryRows(LOWER_CATEGORIES)}
+        {renderSummaryRow("Sum", (summary) => summary.lower)}
       </TableBody>
       <TableFooter>
         <TableRow>
           <TableCell>Total</TableCell>
-          {game.players.map(() => (
-            <TableCell>0</TableCell>
+          {summaries.map((summary, i) => (
+            <TableCell key={game.players[i].player_uuid}>
+              {summary.total}
+            </TableCell>
           ))}
         </TableRow>
       </TableFooter>
