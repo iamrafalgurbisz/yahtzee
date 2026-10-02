@@ -13,6 +13,7 @@ export class GameResponseDto {
   players: {
     player_uuid: string;
     game_uuid: string;
+    display_name: string;
     seat: number;
     ones: number | null;
     twos: number | null;

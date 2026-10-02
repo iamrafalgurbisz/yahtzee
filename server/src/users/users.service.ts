@@ -51,15 +51,15 @@ export class UsersService {
     return rows[0] ?? null;
   }
 
-  async create(email: string, passwordHash: string) {
+  async create(displayName: string, email: string, passwordHash: string) {
     const client = await this.db.connect();
 
     try {
       await client.query("BEGIN");
 
       const { rows } = await client.query<{ uuid: string; email: string }>(
-        "INSERT INTO users (email) VALUES ($1) RETURNING uuid, email",
-        [email.trim()],
+        "INSERT INTO users (display_name, email) VALUES ($1, $2) RETURNING uuid, email",
+        [displayName.trim(), email.trim()],
       );
 
       await client.query(

@@ -1,5 +1,6 @@
 export type EventMap = {
   "game:updated": { gameUuid: string };
+  "user:games_updated": {};
 };
 
 export type EventType = keyof EventMap;

@@ -6,12 +6,11 @@ function FullPageLoader() {
 }
 
 export function RequireAuth() {
-  const { data: me, isPending } = useMe();
-  console.log("me", me);
+  const { data: me, isPending, isError } = useMe();
   const location = useLocation();
 
   if (isPending) return <FullPageLoader />;
-  if (!me) {
+  if (!me || isError) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 

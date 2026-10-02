@@ -5,19 +5,29 @@ import { GameActions } from "./components/GameActions/GameActions";
 import { useGameSubscription } from "@/api/hooks/useGameSubscription";
 import { CopyLink } from "@/components/CopyLink/CopyLink";
 import { GAME_STATUS } from "@shared/types/gameStatus";
+import { Button } from "@/components/ui/button";
+import { useStartGame } from "@/api/hooks/useStartGame";
 
 export const GamePage = () => {
   const { uuid } = useParams<{ uuid: string }>();
 
   const { data: game } = useGame(uuid);
+  const startGame = useStartGame(uuid);
 
   useGameSubscription(uuid);
+
+  const onStartGame = () => {
+    startGame.mutateAsync();
+  };
 
   if (game.status === GAME_STATUS.WAITING) {
     return (
       <div>
         {game.is_owner && (
-          <CopyLink url={`http://localhost:3001/games/${game.uuid}/join`} />
+          <>
+            <Button onClick={onStartGame}>Start game</Button>
+            <CopyLink url={`http://localhost:3001/games/${game.uuid}/join`} />
+          </>
         )}
       </div>
     );

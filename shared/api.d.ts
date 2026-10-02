@@ -96,22 +96,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/games/{gameUuid}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getGame"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/games/create": {
         parameters: {
             query?: never;
@@ -122,6 +106,38 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/games/subscribe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["subscribeToGames"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/games/{gameUuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getGame"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -199,7 +215,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["subscribe"];
+        get: operations["subscribeToGame"];
         put?: never;
         post?: never;
         delete?: never;
@@ -223,6 +239,7 @@ export interface components {
             password: string;
         };
         RegisterDto: {
+            display_name: string;
             /** Format: email */
             email: string;
             password: string;
@@ -255,6 +272,7 @@ export interface components {
             players: {
                 player_uuid: string;
                 game_uuid: string;
+                display_name: string;
                 seat: number;
                 ones: number | null;
                 twos: number | null;
@@ -409,6 +427,44 @@ export interface operations {
             };
         };
     };
+    create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    subscribeToGames: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
     getGame: {
         parameters: {
             query?: never;
@@ -426,25 +482,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GameResponseDto"];
-                };
-            };
-        };
-    };
-    create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": Record<string, never>;
                 };
             };
         };
@@ -535,7 +572,7 @@ export interface operations {
             };
         };
     };
-    subscribe: {
+    subscribeToGame: {
         parameters: {
             query?: never;
             header?: never;

@@ -37,16 +37,6 @@ export class GamesController {
     return { games };
   }
 
-  @Get(":gameUuid")
-  async getGame(
-    @CurrentUser() user: User,
-    @Param("gameUuid", ParseUUIDPipe) gameUuid: string,
-  ): Promise<GameResponseDto> {
-    const game = await this.gamesService.getGame(user.sub, gameUuid);
-
-    return game;
-  }
-
   @Post("create")
   async create(@CurrentUser() user: User) {
     const game = await this.gamesService.createGame(user.sub);
@@ -58,6 +48,23 @@ export class GamesController {
       });
     }
 
+    this.events.publish(topics.user(user.sub), "user:games_updated", {});
+
+    return game;
+  }
+
+  @Sse("subscribe")
+  subscribeToGames(@CurrentUser() user: User): Observable<MessageEvent> {
+    return this.events.stream(topics.user(user.sub));
+  }
+
+  @Get(":gameUuid")
+  async getGame(
+    @CurrentUser() user: User,
+    @Param("gameUuid", ParseUUIDPipe) gameUuid: string,
+  ): Promise<GameResponseDto> {
+    const game = await this.gamesService.getGame(user.sub, gameUuid);
+
     return game;
   }
 
@@ -67,6 +74,8 @@ export class GamesController {
     @CurrentUser() user: User,
     @Param("gameUuid", ParseUUIDPipe) gameUuid: string,
   ) {
+    this.events.publish(topics.game(gameUuid), "game:updated", { gameUuid });
+
     return await this.gamesService.startGame(user.sub, gameUuid);
   }
 
@@ -75,6 +84,8 @@ export class GamesController {
     @CurrentUser() user: User,
     @Param("gameUuid", ParseUUIDPipe) gameUuid: string,
   ) {
+    this.events.publish(topics.game(gameUuid), "game:updated", { gameUuid });
+
     const player = await this.gamesService.joinGame(user.sub, gameUuid);
 
     if (!player) {
@@ -112,7 +123,7 @@ export class GamesController {
   }
 
   @Sse(":gameUuid/subscribe")
-  subscribe(
+  subscribeToGame(
     @CurrentUser() user: User,
     @Param("gameUuid", ParseUUIDPipe) gameUuid: string,
   ): Observable<MessageEvent> {

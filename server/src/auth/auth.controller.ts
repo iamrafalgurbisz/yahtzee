@@ -18,14 +18,26 @@ import { COOKIE_OPTS } from "./cookie-options";
 import { ACCESS_TOKEN_TTL_SECONDS } from "./auth.constants";
 import { MeResponseDto } from "./dto/me.dto";
 import { ERROR_CODE } from "@shared/types/error_code";
+import type { User } from "@/types/user";
 
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Get("me")
-  async me(@CurrentUser() user: any): Promise<MeResponseDto> {
-    return await this.authService.getMe(user.sub);
+  async me(
+    @CurrentUser() user: User,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<MeResponseDto> {
+    try {
+      return await this.authService.getMe(user.sub);
+    } catch (e) {
+      if (e instanceof UnauthorizedException) {
+        res.clearCookie("access_token", COOKIE_OPTS);
+      }
+
+      throw e;
+    }
   }
 
   @Public()

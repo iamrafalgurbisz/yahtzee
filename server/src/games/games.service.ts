@@ -39,8 +39,12 @@ export class GamesService {
       `SELECT g.*,
               (g.owner_uuid IS NOT DISTINCT FROM $2::uuid)             AS is_owner,
               (g.status = 'in_progress' AND me.seat = g.current_seat)  AS is_my_turn,
-              (SELECT json_agg(gp.* ORDER BY gp.seat)
+              (SELECT json_agg(
+                        to_jsonb(gp) || jsonb_build_object('display_name', u.display_name)
+                        ORDER BY gp.seat
+                      )
                  FROM game_players gp
+                 JOIN users u ON u.uuid = gp.player_uuid
                 WHERE gp.game_uuid = g.uuid)                            AS players
          FROM games g
          JOIN game_players me ON me.game_uuid = g.uuid AND me.player_uuid = $2

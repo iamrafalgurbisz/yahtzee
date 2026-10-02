@@ -1,19 +1,15 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { QUERY_KEYS } from "../queryKeys";
+import { useMutation } from "@tanstack/react-query";
 import { api } from "../api";
 import { redirect, useNavigate } from "react-router";
 import { toast } from "@/components/ui/toast";
 import type { AxiosError } from "axios";
 
 export const useJoinGame = (uuid: string) => {
-  const qc = useQueryClient();
   const navigate = useNavigate();
 
   return useMutation({
     mutationFn: () => api.post(`/api/games/${uuid}/join`),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.games.all() });
-
       toast.add({ title: "Successfully joined the game.", type: "error" });
 
       redirect(`/game/${uuid}`);

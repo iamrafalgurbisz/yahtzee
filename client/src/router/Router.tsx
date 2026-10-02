@@ -6,6 +6,7 @@ import { Layout } from "../components/Layout/Layout";
 import { GamesPage } from "../pages/GamesPage/GamesPage";
 import { GamePage } from "../pages/GamePage/GamePage";
 import { JoinGamePage } from "@/pages/JoinGamePage/JoinGamePage";
+import { RegisterPage } from "@/pages/RegisterPage/RegisterPage";
 
 export const router = createBrowserRouter([
   {
@@ -13,7 +14,7 @@ export const router = createBrowserRouter([
     children: [
       { path: "/", element: <Navigate to="/login" replace /> },
       { path: "/login", element: <LoginPage /> },
-      // { path: "/register", element: <RegisterPage /> },
+      { path: "/register", element: <RegisterPage /> },
     ],
   },
   {

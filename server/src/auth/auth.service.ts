@@ -2,13 +2,13 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { UsersService } from "../users/users.service";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import * as argon2 from "argon2";
 import { JwtService } from "@nestjs/jwt";
-import { ref } from "process";
 import { PG_POOL } from "../db/db.module";
 import { Pool } from "pg";
 import { MeResponseDto } from "./dto/me.dto";
@@ -31,7 +31,7 @@ export class AuthService {
     const user = rows[0];
 
     if (!user) {
-      throw new InternalServerErrorException({
+      throw new UnauthorizedException({
         message: "User not found",
         code: ERROR_CODE.USER_NOT_FOUND,
       });
@@ -59,7 +59,7 @@ export class AuthService {
   async register(dto: RegisterDto): Promise<any> {
     const passwordHash = await argon2.hash(dto.password);
 
-    return this.usersService.create(dto.email, passwordHash);
+    return this.usersService.create(dto.display_name, dto.email, passwordHash);
   }
 
   async refresh() {}
