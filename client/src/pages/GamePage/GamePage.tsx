@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams } from "react-router";
 import { PlayIcon } from "lucide-react";
 import { useGame } from "../../api/hooks/useGame";
@@ -18,12 +19,26 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useStartGame } from "@/api/hooks/useStartGame";
+import type { ScoreSelection } from "./types";
 
 export const GamePage = () => {
   const { uuid } = useParams<{ uuid: string }>();
 
   const { data: game } = useGame(uuid);
   const startGame = useStartGame(uuid);
+  const [selection, setSelection] = useState<
+    (ScoreSelection & { turnKey: string }) | null
+  >(null);
+
+  // Wybór dotyczy konkretnego rzutu - po kolejnym rzucie albo zmianie tury znika.
+  const turnKey = `${game.round}-${game.current_seat}-${game.rolls_used}`;
+  const selected = selection?.turnKey === turnKey ? selection : null;
+
+  const onSelect = (next: ScoreSelection) => {
+    setSelection(
+      selected?.category === next.category ? null : { ...next, turnKey },
+    );
+  };
 
   useGameSubscription(uuid);
 
@@ -86,11 +101,12 @@ export const GamePage = () => {
       </div>
       <div className="grid items-start gap-4 lg:grid-cols-[1fr_auto]">
         <Card className="py-0">
-          <GameInfo gameUuid={uuid} />
+          <GameInfo gameUuid={uuid} selected={selected} onSelect={onSelect} />
         </Card>
         <GameActions
           key={`${game.uuid}-${game.round}-${game.current_seat}`}
           gameUuid={uuid}
+          selected={selected}
         />
       </div>
     </div>

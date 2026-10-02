@@ -1,5 +1,6 @@
 import { useGame } from "@/api/hooks/useGame";
 import { useRoll } from "@/api/hooks/useRoll";
+import { useCommit } from "@/api/hooks/useCommit";
 import { Die } from "@/components/Die/Die";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,19 +12,24 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type React from "react";
+import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { DicesIcon } from "lucide-react";
+import { CheckIcon, DicesIcon } from "lucide-react";
 import { GAME_STATUS } from "@shared/types/gameStatus";
+import type { ScoreSelection } from "../../types";
+import { CATEGORY_LABELS } from "../GameInfo/categoryLabels";
 
 interface Props {
   gameUuid: string;
+  selected: ScoreSelection | null;
 }
 
-export const GameActions: React.FC<Props> = ({ gameUuid }) => {
+export const GameActions: React.FC<Props> = ({ gameUuid, selected }) => {
   const { data: game } = useGame(gameUuid);
   const [keep, setKeep] = useState<Set<number>>(() => new Set());
 
   const roll = useRoll(gameUuid);
+  const commit = useCommit(gameUuid);
 
   const onRoll = () => {
     roll.mutateAsync({ keep: [...keep] });
@@ -52,8 +58,8 @@ export const GameActions: React.FC<Props> = ({ gameUuid }) => {
     : !hasRolled
       ? "Roll the dice to start your turn."
       : rollsLeft > 0
-        ? "Tap dice to keep them, roll again or pick a score."
-        : "Pick a score in the table.";
+        ? "Tap dice to keep them, roll again or pick a category in the table."
+        : "Pick a category in the table.";
 
   if (game.status === GAME_STATUS.FINISHED) {
     return (
@@ -70,7 +76,9 @@ export const GameActions: React.FC<Props> = ({ gameUuid }) => {
     <Card className="lg:w-96">
       <CardHeader>
         <CardTitle className="text-lg">
-          {game.is_my_turn ? "Your turn" : `${currentPlayer?.display_name}'s turn`}
+          {game.is_my_turn
+            ? "Your turn"
+            : `${currentPlayer?.display_name}'s turn`}
         </CardTitle>
         <CardDescription>
           Round {game.round} / 15 · {description}
@@ -96,12 +104,41 @@ export const GameActions: React.FC<Props> = ({ gameUuid }) => {
         </div>
       </CardContent>
       {game.is_my_turn && (
-        <CardFooter className="border-t">
+        <CardFooter className="grid gap-2 border-t">
+          {selected && (
+            <div className="flex gap-2">
+              {selected.score > 0 && (
+                <Button
+                  size="lg"
+                  className="flex-1"
+                  onClick={() => commit.mutate(selected)}
+                  disabled={commit.isPending}
+                >
+                  <CheckIcon />
+                  Score {selected.score} in {CATEGORY_LABELS[selected.category]}
+                </Button>
+              )}
+              <Button
+                size="lg"
+                variant="destructive"
+                className={cn(selected.score === 0 && "flex-1")}
+                onClick={() =>
+                  commit.mutate({ category: selected.category, score: 0 })
+                }
+                disabled={commit.isPending}
+              >
+                {selected.score > 0
+                  ? "Score 0"
+                  : `Score 0 in ${CATEGORY_LABELS[selected.category]}`}
+              </Button>
+            </div>
+          )}
           <Button
             size="lg"
-            className="w-full"
+            variant={selected || rollsLeft === 0 ? "outline" : "default"}
+            className="transition-none"
             onClick={onRoll}
-            disabled={rollsLeft === 0 || roll.isPending}
+            disabled={rollsLeft === 0 || roll.isPending || commit.isPending}
           >
             <DicesIcon />
             Roll ({rollsLeft} left)

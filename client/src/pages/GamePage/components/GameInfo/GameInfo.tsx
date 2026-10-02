@@ -20,27 +20,36 @@ import {
   type ScoreSummary,
 } from "@shared/helpers/getScoreSummary";
 import { ScoreCell } from "./components/ScoreCell/ScoreCell";
+import { CATEGORY_LABELS } from "./categoryLabels";
+import { cn } from "@/lib/utils";
+import type { ScoreSelection } from "../../types";
 
 interface Props {
   gameUuid: string;
+  selected: ScoreSelection | null;
+  onSelect: (selection: ScoreSelection) => void;
 }
 
-export const GameInfo: React.FC<Props> = ({ gameUuid }) => {
+export const GameInfo: React.FC<Props> = ({ gameUuid, selected, onSelect }) => {
   const { data: game } = useGame(gameUuid);
 
   const summaries = game.players.map(getScoreSummary);
 
   const renderCategoryRows = (categories: readonly Category[]) =>
     categories.map((category) => (
-      <TableRow key={category}>
-        <TableCell className="pl-4">{category}</TableCell>
+      <TableRow
+        key={category}
+        className={cn(selected?.category === category && "bg-muted/50")}
+      >
+        <TableCell className="pl-4">{CATEGORY_LABELS[category]}</TableCell>
         {game.players.map((player) => (
           <ScoreCell
             key={player.player_uuid}
             player={player}
             dice={game.dice}
-            gameUuid={game.uuid}
             category={category}
+            isSelected={selected?.category === category}
+            onSelect={(score) => onSelect({ category, score })}
             isMyTurn={game.is_my_turn}
             currentSeat={game.current_seat}
           />
@@ -63,10 +72,13 @@ export const GameInfo: React.FC<Props> = ({ gameUuid }) => {
     label: string,
     getValue: (summary: ScoreSummary) => React.ReactNode,
   ) => (
-    <TableRow className="bg-muted/50 font-medium">
+    <TableRow className="text-muted-foreground hover:bg-transparent">
       <TableCell className="pl-4">{label}</TableCell>
       {summaries.map((summary, i) => (
-        <TableCell key={game.players[i].player_uuid}>
+        <TableCell
+          key={game.players[i].player_uuid}
+          className="text-center tabular-nums"
+        >
           {getValue(summary)}
         </TableCell>
       ))}
@@ -77,11 +89,14 @@ export const GameInfo: React.FC<Props> = ({ gameUuid }) => {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="pl-4">Category</TableHead>
+          <TableHead className="w-full pl-4" />
           {game.players.map((player) => (
             <TableHead
               key={player.player_uuid}
-              className={player.seat === game.current_seat ? "bg-accent" : ""}
+              className={cn(
+                "min-w-24 text-center",
+                player.seat === game.current_seat && "bg-muted/60",
+              )}
             >
               {player.display_name}
             </TableHead>
@@ -102,9 +117,12 @@ export const GameInfo: React.FC<Props> = ({ gameUuid }) => {
       </TableBody>
       <TableFooter>
         <TableRow>
-          <TableCell className="pl-4">Total</TableCell>
+          <TableCell className="pl-4 font-semibold">Total</TableCell>
           {summaries.map((summary, i) => (
-            <TableCell key={game.players[i].player_uuid}>
+            <TableCell
+              key={game.players[i].player_uuid}
+              className="text-center font-semibold tabular-nums"
+            >
               {summary.total}
             </TableCell>
           ))}
