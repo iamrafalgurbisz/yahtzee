@@ -23,7 +23,8 @@ export class GamesService {
   async getGames(userUuid: string) {
     const { rows } = await this.db.query<GamesResponseDto["games"][number]>(
       `SELECT g.*,
-              (g.owner_uuid IS NOT DISTINCT FROM $1::uuid) AS is_owner
+              (g.owner_uuid IS NOT DISTINCT FROM $1::uuid)            AS is_owner,
+              (g.status = 'in_progress' AND gp.seat = g.current_seat) AS is_my_turn
          FROM games g
          JOIN game_players gp ON gp.game_uuid = g.uuid
         WHERE gp.player_uuid = $1

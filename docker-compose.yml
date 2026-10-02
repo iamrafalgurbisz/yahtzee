@@ -9,7 +9,6 @@ services:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ./server/src/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d yahtzee"]
       interval: 3s
@@ -25,6 +24,10 @@ services:
     environment:
       JWT_SECRET: ${JWT_SECRET}
       DATABASE_URL: ${DATABASE_URL}
+      CLIENT_URL: http://localhost:3001
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      MAIL_FROM: "Yahtzee <no-reply@yahtzee.local>"
     ports:
       - "3000:3000"
     volumes:
@@ -34,6 +37,14 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  mailpit:
+    profiles: ["dev"]
+    image: axllent/mailpit
+    ports:
+      - "8025:8025"
 
   server:
     profiles: ["prod"]
@@ -44,6 +55,12 @@ services:
     environment:
       JWT_SECRET: ${JWT_SECRET}
       DATABASE_URL: ${DATABASE_URL}
+      CLIENT_URL: ${CLIENT_URL:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-}
     ports:
       - "3000:3000"
     depends_on:

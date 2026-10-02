@@ -9,6 +9,12 @@ export function isUnauthorized(error: unknown): boolean {
   return axios.isAxiosError(error) && error.response?.status === 401;
 }
 
+export function isClientError(error: unknown): boolean {
+  const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+
+  return status !== undefined && status >= 400 && status < 500;
+}
+
 export function getApiError(error: unknown): {
   message: string;
   code?: string;

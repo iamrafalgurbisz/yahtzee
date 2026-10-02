@@ -11,5 +11,6 @@ export class GamesResponseDto {
     round: number;
     is_owner: boolean;
     is_my_turn: boolean;
+    created_at: string;
   }[];
 }

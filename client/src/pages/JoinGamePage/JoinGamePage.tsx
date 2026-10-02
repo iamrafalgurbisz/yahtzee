@@ -8,7 +8,7 @@ export const JoinGamePage = () => {
   const joinGame = useJoinGame(uuid);
 
   useEffect(() => {
-    joinGame.mutateAsync();
+    joinGame.mutate();
   }, []);
 
   return (

@@ -36,7 +36,7 @@ export const ScoreCell: React.FC<Props> = ({
   const content = useMemo(() => {
     if (player.seat === currentSeat && playerScore === null && dice.length) {
       return (
-        <div>
+        <div className="flex gap-1">
           {getPossibleScores(category, dice).map((score, i) => (
             <Button
               key={`${score}${i}`}

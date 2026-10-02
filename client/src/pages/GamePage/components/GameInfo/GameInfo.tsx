@@ -33,7 +33,7 @@ export const GameInfo: React.FC<Props> = ({ gameUuid }) => {
   const renderCategoryRows = (categories: readonly Category[]) =>
     categories.map((category) => (
       <TableRow key={category}>
-        <TableCell>{category}</TableCell>
+        <TableCell className="pl-4">{category}</TableCell>
         {game.players.map((player) => (
           <ScoreCell
             key={player.player_uuid}
@@ -52,7 +52,7 @@ export const GameInfo: React.FC<Props> = ({ gameUuid }) => {
     <TableRow className="bg-muted hover:bg-muted">
       <TableCell
         colSpan={game.players.length + 1}
-        className="text-xs font-semibold tracking-wide text-muted-foreground uppercase"
+        className="pl-4 text-xs font-semibold tracking-wide text-muted-foreground uppercase"
       >
         {label}
       </TableCell>
@@ -64,7 +64,7 @@ export const GameInfo: React.FC<Props> = ({ gameUuid }) => {
     getValue: (summary: ScoreSummary) => React.ReactNode,
   ) => (
     <TableRow className="bg-muted/50 font-medium">
-      <TableCell>{label}</TableCell>
+      <TableCell className="pl-4">{label}</TableCell>
       {summaries.map((summary, i) => (
         <TableCell key={game.players[i].player_uuid}>
           {getValue(summary)}
@@ -77,7 +77,7 @@ export const GameInfo: React.FC<Props> = ({ gameUuid }) => {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>-</TableHead>
+          <TableHead className="pl-4">Category</TableHead>
           {game.players.map((player) => (
             <TableHead
               key={player.player_uuid}
@@ -102,7 +102,7 @@ export const GameInfo: React.FC<Props> = ({ gameUuid }) => {
       </TableBody>
       <TableFooter>
         <TableRow>
-          <TableCell>Total</TableCell>
+          <TableCell className="pl-4">Total</TableCell>
           {summaries.map((summary, i) => (
             <TableCell key={game.players[i].player_uuid}>
               {summary.total}

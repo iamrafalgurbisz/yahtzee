@@ -1,11 +1,19 @@
 import { useGame } from "@/api/hooks/useGame";
 import { useRoll } from "@/api/hooks/useRoll";
 import { Die } from "@/components/Die/Die";
-import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import type React from "react";
 import { useState } from "react";
-import { InfoIcon } from "lucide-react";
+import { DicesIcon } from "lucide-react";
+import { GAME_STATUS } from "@shared/types/gameStatus";
 
 interface Props {
   gameUuid: string;
@@ -32,50 +40,74 @@ export const GameActions: React.FC<Props> = ({ gameUuid }) => {
     });
   };
 
+  const currentPlayer = game.players.find(
+    (player) => player.seat === game.current_seat,
+  );
+  const rollsLeft = 3 - game.rolls_used;
+  const hasRolled = game.rolls_used > 0;
+  const canKeep = game.is_my_turn && hasRolled && rollsLeft > 0;
+
+  const description = !game.is_my_turn
+    ? "Waiting for their move."
+    : !hasRolled
+      ? "Roll the dice to start your turn."
+      : rollsLeft > 0
+        ? "Tap dice to keep them, roll again or pick a score."
+        : "Pick a score in the table.";
+
+  if (game.status === GAME_STATUS.FINISHED) {
+    return (
+      <Card className="lg:w-96">
+        <CardHeader>
+          <CardTitle className="text-lg">Game over</CardTitle>
+          <CardDescription>All rounds have been played.</CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
+
   return (
-    <div>
-      <div>
-        <Button onClick={onRoll} disabled={!game.is_my_turn}>
-          Roll ({3 - game.rolls_used} rolls left)
-        </Button>
-        <div>
-          {game.rolls_used > 0 ? (
-            <div>
-              {game.is_my_turn && (
-                <Alert>
-                  <InfoIcon />
-                  <AlertTitle>Press a die to keep it</AlertTitle>
-                </Alert>
-              )}
-              <div className="flex">
-                {game.dice.map((d, i) => (
-                  <span key={`${d}${i}`} onClick={() => onToggleKeep(i)}>
-                    <Die value={d} keep={keep.has(i)} />
-                  </span>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="flex">
-              <span>
-                <Die value={null} />
-              </span>
-              <span>
-                <Die value={null} />
-              </span>
-              <span>
-                <Die value={null} />
-              </span>
-              <span>
-                <Die value={null} />
-              </span>
-              <span>
-                <Die value={null} />
-              </span>
-            </div>
-          )}
+    <Card className="lg:w-96">
+      <CardHeader>
+        <CardTitle className="text-lg">
+          {game.is_my_turn ? "Your turn" : `${currentPlayer?.display_name}'s turn`}
+        </CardTitle>
+        <CardDescription>
+          Round {game.round} / 15 · {description}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex justify-between gap-1">
+          {hasRolled
+            ? game.dice.map((d, i) => (
+                <button
+                  key={`${d}${i}`}
+                  type="button"
+                  disabled={!canKeep}
+                  onClick={() => onToggleKeep(i)}
+                  className="rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50 enabled:cursor-pointer"
+                >
+                  <Die value={d} keep={keep.has(i)} className="size-14" />
+                </button>
+              ))
+            : Array.from({ length: 5 }, (_, i) => (
+                <Die key={i} value={null} className="size-14" />
+              ))}
         </div>
-      </div>
-    </div>
+      </CardContent>
+      {game.is_my_turn && (
+        <CardFooter className="border-t">
+          <Button
+            size="lg"
+            className="w-full"
+            onClick={onRoll}
+            disabled={rollsLeft === 0 || roll.isPending}
+          >
+            <DicesIcon />
+            Roll ({rollsLeft} left)
+          </Button>
+        </CardFooter>
+      )}
+    </Card>
   );
 };

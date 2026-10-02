@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends procps \
 COPY shared /repo/shared
 COPY server .
 EXPOSE 3000
-CMD ["npm", "run", "start:dev"]
+CMD ["sh", "-c", "npm run migrate:up && npm run start:dev"]
 
 FROM deps AS build
 COPY shared /repo/shared
@@ -26,6 +26,7 @@ ENV NODE_ENV=production
 COPY --from=build --chown=node:node /repo/server/package.json ./
 COPY --from=build --chown=node:node /repo/server/node_modules ./node_modules
 COPY --from=build --chown=node:node /repo/server/dist ./dist
+COPY --from=build --chown=node:node /repo/server/migrations ./migrations
 USER node
 EXPOSE 3000
-CMD ["node", "."]
+CMD ["sh", "-c", "npm run migrate:up && node ."]

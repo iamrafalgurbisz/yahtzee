@@ -17,6 +17,8 @@ import { CurrentUser } from "../decorators/currentUser";
 import { COOKIE_OPTS } from "./cookie-options";
 import { ACCESS_TOKEN_TTL_SECONDS } from "./auth.constants";
 import { MeResponseDto } from "./dto/me.dto";
+import { VerifyEmailDto } from "./dto/verify-email.dto";
+import { ResendVerificationDto } from "./dto/resend-verification.dto";
 import { ERROR_CODE } from "@shared/types/error_code";
 import type { User } from "@/types/user";
 
@@ -77,6 +79,20 @@ export class AuthController {
   @Post("register")
   async register(@Body() body: RegisterDto) {
     return await this.authService.register(body);
+  }
+
+  @Public()
+  @Post("verify-email")
+  @HttpCode(204)
+  async verifyEmail(@Body() body: VerifyEmailDto) {
+    await this.authService.verifyEmail(body.token);
+  }
+
+  @Public()
+  @Post("resend-verification")
+  @HttpCode(204)
+  async resendVerification(@Body() body: ResendVerificationDto) {
+    await this.authService.resendEmailVerification(body.email);
   }
 
   @Post("refresh")

@@ -7,6 +7,8 @@ import { GamesPage } from "../pages/GamesPage/GamesPage";
 import { GamePage } from "../pages/GamePage/GamePage";
 import { JoinGamePage } from "@/pages/JoinGamePage/JoinGamePage";
 import { RegisterPage } from "@/pages/RegisterPage/RegisterPage";
+import { VerifyEmailPage } from "@/pages/VerifyEmailPage/VerifyEmailPage";
+import { GameErrorPage } from "@/pages/GameErrorPage/GameErrorPage";
 
 export const router = createBrowserRouter([
   {
@@ -25,11 +27,16 @@ export const router = createBrowserRouter([
         children: [
           { path: "/", element: <Navigate to="/games" replace /> },
           { path: "/games", element: <GamesPage /> },
-          { path: "/games/:uuid", element: <GamePage /> },
+          {
+            path: "/games/:uuid",
+            element: <GamePage />,
+            errorElement: <GameErrorPage />,
+          },
           { path: "/games/:uuid/join", element: <JoinGamePage /> },
         ],
       },
     ],
   },
+  { path: "/verify-email", element: <VerifyEmailPage /> },
   { path: "*", element: <NotFoundPage /> },
 ]);
